@@ -7,6 +7,6 @@ package com.mycompany.githubsyncapp;
 public class GitHubSyncApp {
 
     public static void main(String[] args) {
-        
+        new LoginUI();
     }
 }
