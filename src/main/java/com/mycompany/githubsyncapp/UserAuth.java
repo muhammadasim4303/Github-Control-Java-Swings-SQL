@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 public class UserAuth {
     public static boolean registerUser(String username, String email, String password) {
-        String query = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+        String query = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
         try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
             stmt.setString(2, email);
