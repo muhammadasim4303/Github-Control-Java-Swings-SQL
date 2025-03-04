@@ -1,13 +1,16 @@
 package com.mycompany.githubsyncapp;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class LoginUI extends JFrame {
     private JTextField emailField;
     private JPasswordField passwordField;
     private JButton loginButton, registerButton, forgotPasswordButton;
+    private JButton loginWithGitHubButton;
 
     public LoginUI() {
         setTitle("Login");
@@ -42,6 +45,12 @@ public class LoginUI extends JFrame {
         forgotPasswordButton = new JButton("Forgot Password?");
         forgotPasswordButton.setBounds(20, 120, 190, 25);
         add(forgotPasswordButton);
+
+        loginWithGitHubButton = new JButton("Login with GitHub");
+        forgotPasswordButton.setBounds(20, 150, 190, 25);
+        loginWithGitHubButton.addActionListener(e -> openGitHubLogin());
+
+        add(loginWithGitHubButton);
 
         loginButton.addActionListener(e -> {
             String email = emailField.getText();
