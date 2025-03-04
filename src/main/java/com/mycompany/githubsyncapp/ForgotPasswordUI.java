@@ -43,7 +43,7 @@ public class ForgotPasswordUI extends JFrame {
         newPasswordLabel.setBounds(20, 160, 120, 25);
         add(newPasswordLabel);
 
-        newPasswordField = new JPasswordField(); // FIXED
+        newPasswordField = new JPasswordField(); 
         newPasswordField.setBounds(120, 160, 150, 25);
         add(newPasswordField);
 
@@ -53,18 +53,19 @@ public class ForgotPasswordUI extends JFrame {
 
         // Send OTP
         sendOtpButton.addActionListener(e -> {
-            String email = emailField.getText().trim();
+            String email = emailField.getText().trim().toLowerCase();  // Trim spaces & lowercase email
+        
             if (email.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please enter your email.");
                 return;
             }
-
+        
             generatedOtp = OTPService.sendOTP(email);
             if (generatedOtp != -1) {
                 userEmail = email;
                 JOptionPane.showMessageDialog(this, "OTP Sent to " + email);
             } else {
-                JOptionPane.showMessageDialog(this, "Invalid Email!");
+                JOptionPane.showMessageDialog(this, "Invalid Email!");  // Ensure email exists in DB
             }
         });
 

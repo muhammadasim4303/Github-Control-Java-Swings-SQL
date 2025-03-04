@@ -64,13 +64,14 @@ public class LoginUI extends JFrame {
         });
 
         loginWithGitHubButton.addActionListener(e -> {
-            String clientId = "Ov23li8pZDEjSHJv9dTd"; //YOUR_GITHUB_CLIENT_ID
+            String clientId = "ID"; //YOUR_GITHUB_CLIENT_ID
             String authUrl = "https://github.com/login/oauth/authorize?client_id=" + clientId + "&scope=repo";
             
             try {
-                Desktop.getDesktop().browse(new java.net.URI(authUrl));
+                GitHubAPI.authenticateUser(); // Starts OAuth flow
             } catch (Exception ex) {
                 ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error during GitHub authentication.");
             }
         });
 

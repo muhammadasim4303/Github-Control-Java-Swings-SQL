@@ -1,62 +1,97 @@
 package com.mycompany.githubsyncapp;
 
-import java.awt.Desktop;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.util.Scanner;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JOptionPane;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class GitHubAPI {
-    private static final String CLIENT_ID = "YOUR_CLIENT_ID";
-    private static final String CLIENT_SECRET = "YOUR_CLIENT_SECRET";
-    private static final String REDIRECT_URI = "http://localhost:8080/callback"; 
-    private static String accessToken = "";
+    private static final String GITHUB_API_URL = "https://api.github.com";
 
-    public static void authenticateUser() throws Exception {
-        String authUrl = "https://github.com/login/oauth/authorize?client_id=" + CLIENT_ID +
-                         "&redirect_uri=" + REDIRECT_URI + "&scope=repo";
-
-        // Open default browser for user login
-        if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().browse(new URI(authUrl));
+    //Keeps authenticateUser() method intact
+    public static void authenticateUser() {
+        String token = GitHubOAuth.getAccessToken();
+        if (token == null) {
+            JOptionPane.showMessageDialog(null, "User is not authenticated with GitHub.", "Authentication", JOptionPane.WARNING_MESSAGE);
         } else {
-            System.out.println("Please open the following URL manually in a browser: " + authUrl);
+            JOptionPane.showMessageDialog(null, "User is authenticated with GitHub!", "Authentication", JOptionPane.INFORMATION_MESSAGE);
         }
-
-        // Wait for user to enter the auth code
-        System.out.print("Enter the authorization code from GitHub: ");
-        Scanner scanner = new Scanner(System.in);
-        String authCode = scanner.nextLine();
-
-        // Exchange the auth code for an access token
-        exchangeAuthCodeForToken(authCode);
     }
 
-    private static void exchangeAuthCodeForToken(String authCode) throws Exception {
-        String tokenUrl = "https://github.com/login/oauth/access_token";
-        String params = "client_id=" + CLIENT_ID + "&client_secret=" + CLIENT_SECRET + "&code=" + authCode;
+    //Fetch Public & Private Repositories
+    public static List<String> getRepositories(boolean isPrivate) {
+        List<String> repoList = new ArrayList<>();
+        try {
+            String token = GitHubOAuth.getAccessToken();
+            if (token == null) {
+                JOptionPane.showMessageDialog(null, "Error: GitHub Access Token is missing!", "Error", JOptionPane.ERROR_MESSAGE);
+                return repoList;
+            }
 
-        URL url = new URL(tokenUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Accept", "application/json");
-        conn.setDoOutput(true);
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(GITHUB_API_URL + "/user/repos"))
+                .header("Authorization", "token " + token)
+                .header("Accept", "application/vnd.github.v3+json")
+                .GET()
+                .build();
 
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(params.getBytes());
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            JSONArray repos = new JSONArray(response.body());
+
+            for (int i = 0; i < repos.length(); i++) {
+                JSONObject repo = repos.getJSONObject(i);
+                boolean isRepoPrivate = repo.getBoolean("private");
+                if (isRepoPrivate == isPrivate) {
+                    repoList.add(repo.getString("name"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Failed to load repositories.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        String response = in.readLine();
-        in.close();
-
-        // Extract token
-        accessToken = response.split("\"access_token\":\"")[1].split("\"")[0];
-        System.out.println("Access Token: " + accessToken);
+        return repoList;
     }
 
-    public static String getAccessToken() {
-        return accessToken;
+    //Create New Repository
+    public static void createRepository(String repoName, boolean isPrivate) {
+        try {
+            String token = GitHubOAuth.getAccessToken();
+            if (token == null) {
+                JOptionPane.showMessageDialog(null, "Error: GitHub Access Token is missing!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            JSONObject requestBody = new JSONObject();
+            requestBody.put("name", repoName);
+            requestBody.put("private", isPrivate);
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(GITHUB_API_URL + "/user/repos"))
+                .header("Authorization", "token " + token)
+                .header("Accept", "application/vnd.github.v3+json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 201) {
+                JOptionPane.showMessageDialog(null, "Repository '" + repoName + "' created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "Failed to create repository. Response: " + response.body(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Failed to create repository.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

@@ -10,8 +10,8 @@ public class OTPService {
         if (!UserAuth.emailExists(email)) return -1; // Check if email exists in DB
 
         int otp = new Random().nextInt(900000) + 100000;
-        String from = "your-email@gmail.com";
-        String password = "your-email-password";
+        String from = "email@gmail.com"; //your email using for sending email
+        String password = "password"; //your password for the email
 
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
