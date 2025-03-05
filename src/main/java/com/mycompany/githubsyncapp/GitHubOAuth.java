@@ -8,8 +8,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class GitHubOAuth {
-    private static final String CLIENT_ID = "GITHUB_CLIENT_ID"; 
-    private static final String CLIENT_SECRET = "GITHUB_CLIENT_SECRET"; 
+    private static final String CLIENT_ID = ""; //your client id
+    private static final String CLIENT_SECRET = ""; //your client secret
     private static final String AUTH_URL = "https://github.com/login/oauth/authorize";
     private static final String TOKEN_URL = "https://github.com/login/oauth/access_token";
     private static final String REDIRECT_URI = "http://localhost:8080/callback"; 
@@ -44,6 +44,35 @@ public class GitHubOAuth {
             System.out.println("User authenticated! Access Token: " + accessToken);
         }
     }
+
+    public static String getGitHubUsername() {
+        try {
+            String token = getAccessToken();
+            if (token == null) {
+                System.out.println("Error: GitHub Access Token is missing!");
+                return null;
+            }
+    
+            URL url = new URL("https://api.github.com/user");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "token " + token);
+            conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+    
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String response = br.readLine();
+            br.close();
+    
+            //Extract the username from JSON response
+            org.json.JSONObject jsonResponse = new org.json.JSONObject(response);
+            return jsonResponse.getString("login");
+    
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
 
     private static String getAccessToken(String code) throws IOException {
         URL url = new URL(TOKEN_URL);

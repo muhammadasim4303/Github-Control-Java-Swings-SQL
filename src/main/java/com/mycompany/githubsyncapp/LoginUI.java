@@ -14,7 +14,7 @@ public class LoginUI extends JFrame {
 
     public LoginUI() {
         setTitle("Login");
-        setSize(300, 200);
+        setSize(300, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
@@ -64,7 +64,7 @@ public class LoginUI extends JFrame {
         });
 
         loginWithGitHubButton.addActionListener(e -> {
-            String clientId = "ID"; //YOUR_GITHUB_CLIENT_ID
+            String clientId = ""; //YOUR_GITHUB_CLIENT_ID
             String authUrl = "https://github.com/login/oauth/authorize?client_id=" + clientId + "&scope=repo";
             
             try {
